@@ -42,7 +42,10 @@ export const useAuth = () => {
         .eq('id', userId)
         .single();
       
-      if (error) throw error;
+      if (error && error.code !== 'PGRST116') {
+        // PGRST116 is "not found" error, which is expected for new users
+        throw error;
+      }
       setUserProfile(data);
     } catch (error) {
       console.error('Error fetching user profile:', error);

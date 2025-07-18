@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, Shield } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { Toast } from '../../components/ui/Toast';
 
 export const AdminLogin: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -11,6 +12,8 @@ export const AdminLogin: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
   const { signIn, user, userProfile } = useAuth();
   const navigate = useNavigate();
 
@@ -20,6 +23,22 @@ export const AdminLogin: React.FC = () => {
       navigate('/admin');
     }
   }, [user, userProfile, navigate]);
+
+  // Handle navigation after successful authentication
+  useEffect(() => {
+    if (user && userProfile && !loading) {
+      if (['admin', 'staff'].includes(userProfile.role)) {
+        setToastMessage(`Welcome back, ${userProfile.role}!`);
+        setShowToast(true);
+        setTimeout(() => {
+          navigate('/admin');
+        }, 1000);
+      } else {
+        setError('Access denied. Admin or staff privileges required.');
+        setLoading(false);
+      }
+    }
+  }, [user, userProfile, loading, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -37,21 +56,26 @@ export const AdminLogin: React.FC = () => {
       const { error } = await signIn(formData.email, formData.password);
       if (error) {
         setError(error.message);
-      } else {
-        // Wait a moment for userProfile to be fetched
-        setTimeout(() => {
-          navigate('/admin');
-        }, 1000);
+        setLoading(false);
       }
+      // Don't set loading to false here if login was successful
+      // Let the useEffect handle navigation after auth state updates
     } catch (err) {
       setError('An unexpected error occurred');
-    } finally {
       setLoading(false);
+    } finally {
+      // Only set loading to false if there was an error
+      // Success case is handled by useEffect
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-westar py-12 px-4 sm:px-6 lg:px-8">
+      <Toast 
+        message={toastMessage} 
+        isVisible={showToast} 
+        onClose={() => setShowToast(false)} 
+      />
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <div className="flex justify-center mb-6">

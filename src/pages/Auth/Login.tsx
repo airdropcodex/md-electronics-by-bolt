@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { Toast } from '../../components/ui/Toast';
 
 export const Login: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -11,8 +12,21 @@ export const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const { signIn, user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+
+  // Handle navigation after successful authentication
+  React.useEffect(() => {
+    if (user && !authLoading && !loading) {
+      setToastMessage('Login successful! Welcome back.');
+      setShowToast(true);
+      setTimeout(() => {
+        navigate('/');
+      }, 1000);
+    }
+  }, [user, authLoading, loading, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -30,18 +44,26 @@ export const Login: React.FC = () => {
       const { error } = await signIn(formData.email, formData.password);
       if (error) {
         setError(error.message);
-      } else {
-        navigate('/');
+        setLoading(false);
       }
+      // Don't set loading to false here if login was successful
+      // Let the useEffect handle navigation after auth state updates
     } catch (err) {
       setError('An unexpected error occurred');
-    } finally {
       setLoading(false);
+    } finally {
+      // Only set loading to false if there was an error
+      // Success case is handled by useEffect
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-westar py-12 px-4 sm:px-6 lg:px-8">
+      <Toast 
+        message={toastMessage} 
+        isVisible={showToast} 
+        onClose={() => setShowToast(false)} 
+      />
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-cod-gray">
