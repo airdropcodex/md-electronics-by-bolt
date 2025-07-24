@@ -1,12 +1,18 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CreditCard, Truck, Shield } from 'lucide-react';
 import { useCart } from '../hooks/useCart';
 import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../lib/supabase';
+import { Toast } from '../components/ui/Toast';
 
 export const Checkout: React.FC = () => {
-  const { cartItems, getTotalAmount } = useCart();
+  const { cartItems, getTotalAmount, clearCart } = useCart();
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
@@ -21,10 +27,72 @@ export const Checkout: React.FC = () => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle order submission
-    console.log('Order submitted:', formData);
+    
+    if (!user) {
+      setToastMessage('Please log in to place an order');
+      setShowToast(true);
+      return;
+    }
+
+    if (cartItems.length === 0) {
+      setToastMessage('Your cart is empty');
+      setShowToast(true);
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Create the order
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          user_id: user.id,
+          total_amount: getTotalAmount(),
+          shipping_address: formData.address,
+          phone: formData.phone,
+          payment_method: formData.paymentMethod,
+          status: 'pending'
+        })
+        .select()
+        .single();
+
+      if (orderError) throw orderError;
+
+      // Create order items
+      const orderItems = cartItems.map(item => ({
+        order_id: order.id,
+        product_id: item.product_id,
+        quantity: item.quantity,
+        price: item.product?.price || 0
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(orderItems);
+
+      if (itemsError) throw itemsError;
+
+      // Clear the cart
+      await clearCart();
+
+      setToastMessage('Order placed successfully! We will contact you soon.');
+      setShowToast(true);
+      
+      // Redirect to home page after a short delay
+      setTimeout(() => {
+        navigate('/');
+      }, 2000);
+
+    } catch (error) {
+      console.error('Error placing order:', error);
+      setToastMessage('Failed to place order. Please try again.');
+      setShowToast(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const formatPrice = (price: number) => {
@@ -69,6 +137,11 @@ export const Checkout: React.FC = () => {
 
   return (
     <div className="bg-westar min-h-screen py-8">
+      <Toast 
+        message={toastMessage} 
+        isVisible={showToast} 
+        onClose={() => setShowToast(false)} 
+      />
       <div className="container mx-auto px-4 md:px-8 lg:px-16">
         <div className="mb-8">
           <Link
@@ -153,10 +226,11 @@ export const Checkout: React.FC = () => {
 
               <button
                 type="submit"
+                disabled={loading}
                 className="w-full bg-cod-gray text-white py-4 px-6 rounded-lg font-medium uppercase tracking-wide hover:bg-clay-creek transition-colors flex items-center justify-center space-x-2"
               >
                 <CreditCard className="w-5 h-5" />
-                <span>Place Order</span>
+                <span>{loading ? 'Placing Order...' : 'Place Order'}</span>
               </button>
             </form>
           </div>

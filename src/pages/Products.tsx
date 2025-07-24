@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Search, Filter, Grid, List } from 'lucide-react';
 import { Product } from '../types';
 import { ProductCard } from '../components/ProductCard';
@@ -11,10 +12,25 @@ export const Products: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('name');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const location = useLocation();
 
   useEffect(() => {
     fetchProducts();
+    
+    // Get search term from URL parameters
+    const urlParams = new URLSearchParams(location.search);
+    const searchParam = urlParams.get('search');
+    if (searchParam) {
+      setSearchTerm(searchParam);
+    }
   }, []);
+
+  useEffect(() => {
+    // Update search term when URL changes
+    const urlParams = new URLSearchParams(location.search);
+    const searchParam = urlParams.get('search');
+    setSearchTerm(searchParam || '');
+  }, [location.search]);
 
   useEffect(() => {
     filterAndSortProducts();

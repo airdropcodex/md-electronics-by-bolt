@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Search, ShoppingCart, User, Menu, X, Heart, Phone, Mail } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
@@ -16,11 +16,13 @@ interface LayoutProps {
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = React.useState(false);
+  const [searchTerm, setSearchTerm] = React.useState('');
   const [categories, setCategories] = useState<Category[]>([]);
   const { user, signOut } = useAuth();
   const { getTotalItems } = useCart();
   const { getTotalWishlistItems } = useWishlist();
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchCategories();
@@ -54,6 +56,14 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     return location.pathname === path;
   };
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      navigate(`/products?search=${encodeURIComponent(searchTerm.trim())}`);
+      setSearchTerm('');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-westar font-inter">
       {/* Header */}
@@ -67,14 +77,21 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
             {/* Search bar */}
             <div className="hidden lg:flex flex-1 max-w-lg mx-12">
-              <div className="relative w-full">
+              <form onSubmit={handleSearch} className="relative w-full">
                 <input
                   type="text"
                   placeholder="Search products..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full px-6 py-3 border border-clay-creek/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-clay-creek/50 focus:border-clay-creek bg-westar/50 text-cod-gray placeholder-sandstone font-medium"
                 />
-                <Search className="absolute right-4 top-3.5 w-5 h-5 text-sandstone" />
-              </div>
+                <button 
+                  type="submit"
+                  className="absolute right-4 top-3.5 w-5 h-5 text-sandstone hover:text-clay-creek transition-colors"
+                >
+                  <Search className="w-5 h-5" />
+                </button>
+              </form>
             </div>
 
             {/* Actions */}
@@ -230,14 +247,21 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               className="lg:hidden py-6 border-t border-clay-creek/10"
             >
               <div className="flex flex-col space-y-2">
-                <div className="relative mb-4">
+                <form onSubmit={handleSearch} className="relative mb-4">
                   <input
                     type="text"
                     placeholder="Search products..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full px-6 py-3 border border-clay-creek/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-clay-creek/50 focus:border-clay-creek bg-westar/50 text-cod-gray placeholder-sandstone font-medium"
                   />
-                  <Search className="absolute right-4 top-3.5 w-5 h-5 text-sandstone" />
-                </div>
+                  <button 
+                    type="submit"
+                    className="absolute right-4 top-3.5 w-5 h-5 text-sandstone hover:text-clay-creek transition-colors"
+                  >
+                    <Search className="w-5 h-5" />
+                  </button>
+                </form>
                 <Link to="/" className="block py-3 font-bold uppercase tracking-wide text-cod-gray hover:text-clay-creek transition-colors">
                   Home
                 </Link>
