@@ -1,12 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { User, Heart, ShoppingBag, Settings, LogOut } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
+import { SignedIn, SignedOut, SignInButton } from '@clerk/clerk-react';
+import { useAuth } from '../hooks/useClerkAuth';
 import { useCart } from '../hooks/useCart';
 import { useWishlist } from '../hooks/useWishlist';
 
 export const Account: React.FC = () => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const { getTotalItems } = useCart();
   const { getTotalWishlistItems } = useWishlist();
 
@@ -15,12 +16,11 @@ export const Account: React.FC = () => {
       <div className="bg-westar min-h-screen py-16">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-3xl font-bold text-cod-gray mb-4">Please log in to access your account</h1>
-          <Link
-            to="/login"
-            className="inline-block bg-cod-gray text-white px-6 py-3 rounded-lg hover:bg-clay-creek transition-colors"
-          >
-            Login
-          </Link>
+          <SignInButton mode="modal">
+            <button className="inline-block bg-cod-gray text-white px-6 py-3 rounded-lg hover:bg-clay-creek transition-colors">
+              Login
+            </button>
+          </SignInButton>
         </div>
       </div>
     );
@@ -31,7 +31,7 @@ export const Account: React.FC = () => {
       <div className="container mx-auto px-4 md:px-8 lg:px-16">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-cod-gray mb-2">My Account</h1>
-          <p className="text-sandstone">Welcome back, {user.user_metadata?.full_name || user.email}</p>
+          <p className="text-sandstone">Welcome back, {user.full_name || user.email}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -53,7 +53,7 @@ export const Account: React.FC = () => {
               </div>
               <div>
                 <label className="text-sm font-medium text-sandstone">Name</label>
-                <p className="text-cod-gray">{user.user_metadata?.full_name || 'Not provided'}</p>
+                <p className="text-cod-gray">{user.full_name || 'Not provided'}</p>
               </div>
             </div>
             <button className="mt-6 w-full bg-westar text-cod-gray py-2 px-4 rounded-lg hover:bg-clay-creek/20 transition-colors flex items-center justify-center space-x-2">
@@ -127,16 +127,6 @@ export const Account: React.FC = () => {
           </div>
         </div>
 
-        {/* Logout */}
-        <div className="mt-8 text-center">
-          <button
-            onClick={signOut}
-            className="inline-flex items-center space-x-2 text-sandstone hover:text-cod-gray transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-            <span>Sign Out</span>
-          </button>
-        </div>
       </div>
     </div>
   );

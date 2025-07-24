@@ -6,8 +6,6 @@ import { Categories } from './pages/Categories';
 import { CategoryProducts } from './pages/CategoryProducts';
 import { ProductDetail } from './pages/ProductDetail';
 import { Products } from './pages/Products';
-import { Login } from './pages/Auth/Login';
-import { Register } from './pages/Auth/Register';
 import { Cart } from './pages/Cart';
 import { Checkout } from './pages/Checkout';
 import { Account } from './pages/Account';
@@ -44,8 +42,6 @@ function App() {
             <Route path="/categories/:slug" element={<CategoryProducts />} />
             <Route path="/products" element={<Products />} />
             <Route path="/product/:id" element={<ProductDetail />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/account" element={<Account />} />

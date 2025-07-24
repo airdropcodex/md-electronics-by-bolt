@@ -2,7 +2,8 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Search, ShoppingCart, User, Menu, X, Heart, Phone, Mail } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useAuth } from '../hooks/useAuth';
+import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react';
+import { useAuth } from '../hooks/useClerkAuth';
 import { useCart } from '../hooks/useCart';
 import { useWishlist } from '../hooks/useWishlist';
 import { useState, useEffect } from 'react';
@@ -17,7 +18,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = React.useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const { getTotalItems } = useCart();
   const { getTotalWishlistItems } = useWishlist();
   const location = useLocation();
@@ -106,67 +107,38 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               </Link>
               
               <div className="hidden md:block relative">
-                <button
-                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="p-3 hover:bg-westar rounded-xl transition-colors group"
-                >
-                  <User className="w-5 h-5 text-cod-gray group-hover:text-clay-creek transition-colors" />
-                </button>
-                
-                {isUserMenuOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-48 bg-white shadow-xl rounded-xl border border-clay-creek/10 py-2 z-50">
-                    {user ? (
-                      <>
-                        <Link
-                          to="/account"
-                          className="block px-4 py-2 text-sm font-medium text-cod-gray hover:bg-westar hover:text-clay-creek transition-colors"
-                          onClick={() => setIsUserMenuOpen(false)}
-                        >
-                          My Account
-                        </Link>
-                        <Link
-                          to="/wishlist"
-                          className="block px-4 py-2 text-sm font-medium text-cod-gray hover:bg-westar hover:text-clay-creek transition-colors"
-                          onClick={() => setIsUserMenuOpen(false)}
-                        >
-                          Wishlist
-                        </Link>
-                        <hr className="my-2 border-clay-creek/10" />
-                        <button
-                          onClick={() => {
-                            signOut();
-                            setIsUserMenuOpen(false);
-                          }}
-                          className="block w-full text-left px-4 py-2 text-sm font-medium text-cod-gray hover:bg-westar hover:text-clay-creek transition-colors"
-                        >
-                          Logout
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <Link
-                          to="/login"
-                          className="block px-4 py-2 text-sm font-medium text-cod-gray hover:bg-westar hover:text-clay-creek transition-colors"
-                          onClick={() => setIsUserMenuOpen(false)}
-                        >
-                          Login
-                        </Link>
-                        <Link
-                          to="/register"
-                          className="block px-4 py-2 text-sm font-medium text-cod-gray hover:bg-westar hover:text-clay-creek transition-colors"
-                          onClick={() => setIsUserMenuOpen(false)}
-                        >
-                          Register
-                        </Link>
-                      </>
-                    )}
-                  </div>
-                )}
+                <SignedOut>
+                  <SignInButton mode="modal">
+                    <button className="p-3 hover:bg-westar rounded-xl transition-colors group">
+                      <User className="w-5 h-5 text-cod-gray group-hover:text-clay-creek transition-colors" />
+                    </button>
+                  </SignInButton>
+                </SignedOut>
+                <SignedIn>
+                  <UserButton 
+                    appearance={{
+                      elements: {
+                        avatarBox: "w-10 h-10",
+                        userButtonPopoverCard: "shadow-xl border border-clay-creek/10",
+                        userButtonPopoverActionButton: "hover:bg-westar"
+                      }
+                    }}
+                  />
+                </SignedIn>
               </div>
               
-              <Link to="/account" className="md:hidden p-3 hover:bg-westar rounded-xl transition-colors group">
-                <User className="w-5 h-5 text-cod-gray group-hover:text-clay-creek transition-colors" />
-              </Link>
+              <div className="md:hidden">
+                <SignedOut>
+                  <SignInButton mode="modal">
+                    <button className="p-3 hover:bg-westar rounded-xl transition-colors group">
+                      <User className="w-5 h-5 text-cod-gray group-hover:text-clay-creek transition-colors" />
+                    </button>
+                  </SignInButton>
+                </SignedOut>
+                <SignedIn>
+                  <UserButton />
+                </SignedIn>
+              </div>
               
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -264,26 +236,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <Link to="/contact" className="block py-3 font-bold uppercase tracking-wide text-cod-gray hover:text-clay-creek transition-colors">
                   Contact
                 </Link>
-                <hr className="my-4 border-clay-creek/20" />
-                {user ? (
-                  <>
-                    <Link to="/account" className="block py-3 font-bold uppercase tracking-wide text-cod-gray hover:text-clay-creek transition-colors">
-                      My Account
-                    </Link>
-                    <button onClick={signOut} className="block py-3 font-bold uppercase tracking-wide text-cod-gray hover:text-clay-creek transition-colors text-left">
-                      Logout
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <Link to="/login" className="block py-3 font-bold uppercase tracking-wide text-cod-gray hover:text-clay-creek transition-colors">
-                      Login
-                    </Link>
-                    <Link to="/register" className="block py-3 font-bold uppercase tracking-wide text-cod-gray hover:text-clay-creek transition-colors">
-                      Register
-                    </Link>
-                  </>
-                )}
               </div>
             </motion.div>
           )}

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { CartItem } from '../types';
 import { supabase } from '../lib/supabase';
-import { useAuth } from './useAuth';
+import { useAuth } from './useClerkAuth';
 
 export const useCart = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);

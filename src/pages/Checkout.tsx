@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, CreditCard, Truck, Shield } from 'lucide-react';
 import { useCart } from '../hooks/useCart';
-import { useAuth } from '../hooks/useAuth';
+import { SignedIn, SignedOut, SignInButton } from '@clerk/clerk-react';
+import { useAuth } from '../hooks/useClerkAuth';
 
 export const Checkout: React.FC = () => {
   const { cartItems, getTotalAmount } = useCart();
@@ -40,12 +41,11 @@ export const Checkout: React.FC = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-cod-gray mb-4">Please log in to checkout</h2>
-          <Link
-            to="/login"
-            className="inline-block bg-cod-gray text-white px-6 py-2 rounded-lg hover:bg-clay-creek transition-colors"
-          >
-            Login
-          </Link>
+          <SignInButton mode="modal">
+            <button className="inline-block bg-cod-gray text-white px-6 py-2 rounded-lg hover:bg-clay-creek transition-colors">
+              Login
+            </button>
+          </SignInButton>
         </div>
       </div>
     );
