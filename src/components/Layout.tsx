@@ -134,7 +134,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                   <div className="absolute right-0 top-full mt-2 w-48 bg-white shadow-xl rounded-xl border border-clay-creek/10 py-2 z-50">
                     {authLoading ? (
                       <div className="px-4 py-2 text-sm text-sandstone">
-                        Loading...
+                        Loading... (Check console for details)
                       </div>
                     ) : user ? (
                       <>

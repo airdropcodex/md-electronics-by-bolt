@@ -9,8 +9,10 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('useAuth: Starting auth state check');
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('useAuth: Initial session:', session ? 'Found' : 'None');
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchUserProfile(session.user.id);
@@ -21,6 +23,7 @@ export const useAuth = () => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('useAuth: Auth state change:', event, session ? 'Session exists' : 'No session');
         setUser(session?.user ?? null);
         if (session?.user) {
           await fetchUserProfile(session.user.id);
@@ -36,6 +39,7 @@ export const useAuth = () => {
 
   const fetchUserProfile = async (userId: string) => {
     try {
+      console.log('useAuth: Fetching user profile for:', userId);
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
@@ -46,6 +50,7 @@ export const useAuth = () => {
         // PGRST116 is "not found" error, which is expected for new users
         throw error;
       }
+      console.log('useAuth: User profile fetched:', data ? 'Success' : 'No profile');
       setUserProfile(data);
     } catch (error) {
       console.error('Error fetching user profile:', error);
