@@ -12,7 +12,7 @@ export const Account: React.FC = () => {
   const { getTotalItems } = useCart();
   const { getTotalWishlistItems } = useWishlist();
   const [showEditModal, setShowEditModal] = React.useState(false);
-  const [loading, setLoading] = React.useState(false);
+  const [isUpdatingProfile, setIsUpdatingProfile] = React.useState(false);
   const [showToast, setShowToast] = React.useState(false);
   const [toastMessage, setToastMessage] = React.useState('');
   const [editFormData, setEditFormData] = React.useState({
@@ -42,7 +42,7 @@ export const Account: React.FC = () => {
     e.preventDefault();
     if (!user) return;
 
-    setLoading(true);
+    setIsUpdatingProfile(true);
 
     try {
       const { error } = await supabase
@@ -68,7 +68,7 @@ export const Account: React.FC = () => {
       setToastMessage('Failed to update profile. Please try again.');
       setShowToast(true);
     } finally {
-      setLoading(false);
+      setIsUpdatingProfile(false);
     }
   };
 
@@ -300,10 +300,10 @@ export const Account: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={isUpdatingProfile}
                   className="px-4 py-2 bg-cod-gray text-white rounded-lg hover:bg-clay-creek transition-colors disabled:opacity-50"
                 >
-                  {loading ? 'Saving...' : 'Save Changes'}
+                  {isUpdatingProfile ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
             </form>
