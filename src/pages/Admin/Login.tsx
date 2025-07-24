@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, Shield } from 'lucide-react';
+import { useSignIn } from '@clerk/clerk-react';
 import { useAuth } from '../../hooks/useClerkAuth';
 import { Toast } from '../../components/ui/Toast';
 
@@ -14,7 +15,8 @@ export const AdminLogin: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
-  const { signIn, user, userProfile } = useAuth();
+  const { signIn, isLoaded: signInLoaded } = useSignIn();
+  const { user, userProfile, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,7 +28,7 @@ export const AdminLogin: React.FC = () => {
 
   // Handle navigation after successful authentication
   useEffect(() => {
-    if (user && userProfile && !loading) {
+    if (user && userProfile && !authLoading) {
       if (['admin', 'staff'].includes(userProfile.role)) {
         setToastMessage(`Welcome back, ${userProfile.role}!`);
         setShowToast(true);
@@ -38,7 +40,7 @@ export const AdminLogin: React.FC = () => {
         setLoading(false);
       }
     }
-  }, [user, userProfile, loading, navigate]);
+  }, [user, userProfile, authLoading, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -53,19 +55,26 @@ export const AdminLogin: React.FC = () => {
     setLoading(true);
 
     try {
-      const { error } = await signIn(formData.email, formData.password);
-      if (error) {
-        setError(error.message);
+      if (!signIn) {
+        setError('Authentication service not available');
+        setLoading(false);
+        return;
+      }
+
+      const result = await signIn.create({
+        identifier: formData.email,
+        password: formData.password,
+      });
+
+      if (result.status === 'complete') {
+        // Login successful, let useEffect handle navigation
+      } else {
+        setError('Login failed. Please check your credentials.');
         setLoading(false);
       }
-      // Don't set loading to false here if login was successful
-      // Let the useEffect handle navigation after auth state updates
     } catch (err) {
-      setError('An unexpected error occurred');
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
       setLoading(false);
-    } finally {
-      // Only set loading to false if there was an error
-      // Success case is handled by useEffect
     }
   };
 
@@ -146,7 +155,7 @@ export const AdminLogin: React.FC = () => {
           <div>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !signInLoaded}
               className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-cod-gray hover:bg-clay-creek focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-clay-creek disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {loading ? 'Signing in...' : 'Sign in to Admin Panel'}

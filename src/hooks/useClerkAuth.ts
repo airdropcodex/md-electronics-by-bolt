@@ -12,21 +12,30 @@ export const useAuth = () => {
     const getSupabaseUser = async () => {
       if (user) {
         try {
-          // Get or create Supabase user
+          // Check if we already have a Supabase session
           const { data: { user: sbUser }, error } = await supabase.auth.getUser();
           
           if (error || !sbUser) {
-            // Sign in to Supabase using Clerk's JWT
-            const token = await user.getToken({ template: 'supabase' });
-            if (token) {
-              const { data: { user: newSbUser }, error: signInError } = await supabase.auth.setSession({
-                access_token: token,
-                refresh_token: 'dummy-refresh-token'
-              });
-              
-              if (!signInError && newSbUser) {
-                setSupabaseUser(newSbUser);
+            try {
+              // Get JWT token from Clerk
+              const token = await user.getToken({ template: 'supabase' });
+              if (token) {
+                // Sign in to Supabase using the JWT token
+                const { data: { user: newSbUser }, error: signInError } = await supabase.auth.signInWithIdToken({
+                  provider: 'custom',
+                  token: token,
+                });
+                
+                if (!signInError && newSbUser) {
+                  setSupabaseUser(newSbUser);
+                } else {
+                  console.error('Supabase sign-in error:', signInError);
+                }
               }
+            } catch (tokenError) {
+              console.error('Error getting Clerk token:', tokenError);
+              // Fallback: try using Clerk user ID directly
+              setSupabaseUser({ id: user.id });
             }
           } else {
             setSupabaseUser(sbUser);
