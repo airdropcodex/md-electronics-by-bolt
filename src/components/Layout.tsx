@@ -181,7 +181,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 )}
               </div>
               
-              <Link to="/account" className="md:hidden p-3 hover:bg-westar rounded-xl transition-colors group">
+              <Link to={user ? "/account" : "/login"} className="md:hidden p-3 hover:bg-westar rounded-xl transition-colors group">
                 <User className="w-5 h-5 text-cod-gray group-hover:text-clay-creek transition-colors" />
               </Link>
               
@@ -294,16 +294,33 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                     <Link to="/account" className="block py-3 font-bold uppercase tracking-wide text-cod-gray hover:text-clay-creek transition-colors">
                       My Account
                     </Link>
-                    <button onClick={signOut} className="block py-3 font-bold uppercase tracking-wide text-cod-gray hover:text-clay-creek transition-colors text-left">
+                    <Link to="/wishlist" className="block py-3 font-bold uppercase tracking-wide text-cod-gray hover:text-clay-creek transition-colors">
+                      Wishlist
+                    </Link>
+                    <button 
+                      onClick={() => {
+                        signOut();
+                        setIsMenuOpen(false);
+                      }} 
+                      className="block py-3 font-bold uppercase tracking-wide text-cod-gray hover:text-clay-creek transition-colors text-left w-full"
+                    >
                       Logout
                     </button>
                   </>
                 ) : (
                   <>
-                    <Link to="/login" className="block py-3 font-bold uppercase tracking-wide text-cod-gray hover:text-clay-creek transition-colors">
+                    <Link 
+                      to="/login" 
+                      className="block py-3 font-bold uppercase tracking-wide text-cod-gray hover:text-clay-creek transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
                       Login
                     </Link>
-                    <Link to="/register" className="block py-3 font-bold uppercase tracking-wide text-cod-gray hover:text-clay-creek transition-colors">
+                    <Link 
+                      to="/register" 
+                      className="block py-3 font-bold uppercase tracking-wide text-cod-gray hover:text-clay-creek transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
                       Register
                     </Link>
                   </>

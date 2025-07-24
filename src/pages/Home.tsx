@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Truck, Shield, Headphones, CreditCard, Zap, Award } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Truck, Shield, Headphones, CreditCard, Zap, Award, ArrowRight } from 'lucide-react';
 import { Product, Category } from '../types';
 import { ProductCard } from '../components/ProductCard';
 import { HeroSection } from '../components/HeroSection';
@@ -9,6 +10,8 @@ import { supabase } from '../lib/supabase';
 
 export const Home: React.FC = () => {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [productsByCategory, setProductsByCategory] = useState<Record<string, Product[]>>({});
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -25,13 +28,30 @@ export const Home: React.FC = () => {
         .eq('featured', true)
         .limit(8);
 
+      // Fetch all products
+      const { data: allProductsData } = await supabase
+        .from('products')
+        .select('*');
+
       // Fetch categories
       const { data: categoriesData } = await supabase
         .from('categories')
         .select('*');
 
       setFeaturedProducts(products || []);
+      setAllProducts(allProductsData || []);
       setCategories(categoriesData || []);
+      
+      // Group products by category
+      if (allProductsData && categoriesData) {
+        const grouped = categoriesData.reduce((acc, category) => {
+          acc[category.id] = allProductsData
+            .filter(product => product.category_id === category.id)
+            .slice(0, 4); // Limit to 4 products per category
+          return acc;
+        }, {} as Record<string, Product[]>);
+        setProductsByCategory(grouped);
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -287,6 +307,50 @@ export const Home: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Category Product Sections */}
+      {categories.map((category) => {
+        const categoryProducts = productsByCategory[category.id] || [];
+        if (categoryProducts.length === 0) return null;
+
+        return (
+          <section key={category.id} className="py-24">
+            <div className="container mx-auto px-4 md:px-8 lg:px-16">
+              <div className="text-center mb-12">
+                <motion.h2
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8 }}
+                  className="text-4xl md:text-5xl font-extrabold text-cod-gray mb-6"
+                >
+                  {category.name}
+                </motion.h2>
+                <motion.p
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.2 }}
+                  className="text-lg text-sandstone leading-relaxed max-w-2xl mx-auto mb-6"
+                >
+                  {category.description || `Explore our ${category.name.toLowerCase()} collection`}
+                </motion.p>
+                <Link
+                  to={`/categories/${category.slug}`}
+                  className="inline-flex items-center text-clay-creek hover:text-cod-gray transition-colors font-medium"
+                >
+                  View All {category.name}
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Link>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                {categoryProducts.map((product, index) => (
+                  <ProductCard key={product.id} product={product} index={index} />
+                ))}
+              </div>
+            </div>
+          </section>
+        );
+      })}
     </div>
   );
 };
