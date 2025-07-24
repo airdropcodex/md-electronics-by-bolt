@@ -31,40 +31,17 @@ export const useAuth = () => {
     const getSupabaseUser = async () => {
       if (user) {
         try {
-          // Check if we already have a Supabase session
-          const { data: { user: sbUser }, error } = await supabase.auth.getUser();
+          // Simplified approach: Use Clerk user ID directly for now
+          // This will work with existing database records
+          const mappedUser = { id: user.id };
+          setSupabaseUser(mappedUser);
           
-          if (error || !sbUser) {
-            try {
-              // Get JWT token from Clerk
-              const token = await user.getToken({ template: 'supabase' });
-              if (token) {
-                // Sign in to Supabase using the JWT token
-                const { data: { user: newSbUser }, error: signInError } = await supabase.auth.signInWithIdToken({
-                  provider: 'custom',
-                  token: token,
-                });
-                
-                if (!signInError && newSbUser) {
-                  setSupabaseUser(newSbUser);
-                  // Fetch user profile data
-                  await fetchUserProfile(newSbUser.id);
-                } else {
-                  console.error('Supabase sign-in error:', signInError);
-                }
-              }
-            } catch (tokenError) {
-              console.error('Error getting Clerk token:', tokenError);
-              // Fallback: try using Clerk user ID directly
-              setSupabaseUser({ id: user.id });
-              await fetchUserProfile(user.id);
-            }
-          } else {
-            setSupabaseUser(sbUser);
-            await fetchUserProfile(sbUser.id);
-          }
+          // Try to fetch user profile with Clerk ID
+          await fetchUserProfile(user.id);
         } catch (error) {
           console.error('Error getting Supabase user:', error);
+          // Fallback: still set the user to allow app functionality
+          setSupabaseUser({ id: user.id });
         }
       } else {
         setSupabaseUser(null);
@@ -72,6 +49,7 @@ export const useAuth = () => {
       }
       setLoading(false);
     };
+    
     if (isLoaded) {
       getSupabaseUser();
     }

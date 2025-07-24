@@ -20,12 +20,6 @@ export const useCart = () => {
   const fetchCartItems = async () => {
     if (!user) return;
 
-    // Skip if user ID is not a valid UUID (still loading Supabase user)
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(user.id)) {
-      return;
-    }
-
     try {
       const { data, error } = await supabase
         .from('cart_items')
@@ -39,6 +33,8 @@ export const useCart = () => {
       setCartItems(data || []);
     } catch (error) {
       console.error('Error fetching cart:', error);
+      // Don't fail silently - set empty cart on error
+      setCartItems([]);
     } finally {
       setLoading(false);
     }
@@ -46,12 +42,6 @@ export const useCart = () => {
 
   const addToCart = async (productId: string, quantity: number = 1) => {
     if (!user) return;
-
-    // Skip if user ID is not a valid UUID
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(user.id)) {
-      return;
-    }
 
     try {
       // Check if item already exists

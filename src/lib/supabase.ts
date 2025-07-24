@@ -7,4 +7,18 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    detectSessionInUrl: false,
+    autoRefreshToken: true,
+  },
+  db: {
+    schema: 'public',
+  },
+  global: {
+    headers: {
+      'x-my-custom-header': 'md-electronics',
+    },
+  },
+});

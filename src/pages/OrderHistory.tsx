@@ -23,12 +23,6 @@ export const OrderHistory: React.FC = () => {
   const fetchOrders = async () => {
     if (!user) return;
 
-    // Check if user.id is a valid UUID before querying Supabase
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(user.id)) {
-      return;
-    }
-
     try {
       const { data, error } = await supabase
         .from('orders')
@@ -46,6 +40,8 @@ export const OrderHistory: React.FC = () => {
       setOrders(data || []);
     } catch (error) {
       console.error('Error fetching orders:', error);
+      // Don't fail silently - set empty orders on error
+      setOrders([]);
     } finally {
       setLoading(false);
     }

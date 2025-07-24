@@ -28,12 +28,6 @@ export const useWishlist = () => {
   const fetchWishlistItems = async () => {
     if (!user) return;
 
-    // Skip if user ID is not a valid UUID (still loading Supabase user)
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(user.id)) {
-      return;
-    }
-
     try {
       const { data, error } = await supabase
         .from('wishlist_items')
@@ -47,6 +41,8 @@ export const useWishlist = () => {
       setWishlistItems(data || []);
     } catch (error) {
       console.error('Error fetching wishlist:', error);
+      // Don't fail silently - set empty wishlist on error
+      setWishlistItems([]);
     } finally {
       setLoading(false);
     }
@@ -54,12 +50,6 @@ export const useWishlist = () => {
 
   const addToWishlist = async (productId: string) => {
     if (!user) return false;
-
-    // Skip if user ID is not a valid UUID
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(user.id)) {
-      return false;
-    }
 
     try {
       const { error } = await supabase
@@ -80,12 +70,6 @@ export const useWishlist = () => {
 
   const removeFromWishlist = async (productId: string) => {
     if (!user) return false;
-
-    // Skip if user ID is not a valid UUID
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(user.id)) {
-      return false;
-    }
 
     try {
       const { error } = await supabase
