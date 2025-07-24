@@ -1,14 +1,76 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { User, Heart, ShoppingBag, Settings, LogOut } from 'lucide-react';
+import { User, Heart, ShoppingBag, Settings, LogOut, X, Edit } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useCart } from '../hooks/useCart';
 import { useWishlist } from '../hooks/useWishlist';
+import { supabase } from '../lib/supabase';
+import { Toast } from '../components/ui/Toast';
 
 export const Account: React.FC = () => {
-  const { user, signOut } = useAuth();
+  const { user, userProfile, signOut } = useAuth();
   const { getTotalItems } = useCart();
   const { getTotalWishlistItems } = useWishlist();
+  const [showEditModal, setShowEditModal] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
+  const [showToast, setShowToast] = React.useState(false);
+  const [toastMessage, setToastMessage] = React.useState('');
+  const [editFormData, setEditFormData] = React.useState({
+    full_name: userProfile?.full_name || '',
+    phone: userProfile?.phone || '',
+    address: userProfile?.address || '',
+  });
+
+  React.useEffect(() => {
+    if (userProfile) {
+      setEditFormData({
+        full_name: userProfile.full_name || '',
+        phone: userProfile.phone || '',
+        address: userProfile.address || '',
+      });
+    }
+  }, [userProfile]);
+
+  const handleEditChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setEditFormData({
+      ...editFormData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
+    setLoading(true);
+
+    try {
+      const { error } = await supabase
+        .from('user_profiles')
+        .update({
+          full_name: editFormData.full_name,
+          phone: editFormData.phone,
+          address: editFormData.address,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      setToastMessage('Profile updated successfully!');
+      setShowToast(true);
+      setShowEditModal(false);
+      
+      // Refresh page to show updated data
+      window.location.reload();
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      setToastMessage('Failed to update profile. Please try again.');
+      setShowToast(true);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (!user) {
     return (
@@ -28,10 +90,15 @@ export const Account: React.FC = () => {
 
   return (
     <div className="bg-westar min-h-screen py-8">
+      <Toast 
+        message={toastMessage} 
+        isVisible={showToast} 
+        onClose={() => setShowToast(false)} 
+      />
       <div className="container mx-auto px-4 md:px-8 lg:px-16">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-cod-gray mb-2">My Account</h1>
-          <p className="text-sandstone">Welcome back, {user.user_metadata?.full_name || user.email}</p>
+          <p className="text-sandstone">Welcome back, {userProfile?.full_name || user.user_metadata?.full_name || user.email}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -53,11 +120,26 @@ export const Account: React.FC = () => {
               </div>
               <div>
                 <label className="text-sm font-medium text-sandstone">Name</label>
-                <p className="text-cod-gray">{user.user_metadata?.full_name || 'Not provided'}</p>
+                <p className="text-cod-gray">{userProfile?.full_name || user.user_metadata?.full_name || 'Not provided'}</p>
               </div>
+              {userProfile?.phone && (
+                <div>
+                  <label className="text-sm font-medium text-sandstone">Phone</label>
+                  <p className="text-cod-gray">{userProfile.phone}</p>
+                </div>
+              )}
+              {userProfile?.address && (
+                <div>
+                  <label className="text-sm font-medium text-sandstone">Address</label>
+                  <p className="text-cod-gray">{userProfile.address}</p>
+                </div>
+              )}
             </div>
-            <button className="mt-6 w-full bg-westar text-cod-gray py-2 px-4 rounded-lg hover:bg-clay-creek/20 transition-colors flex items-center justify-center space-x-2">
-              <Settings className="w-4 h-4" />
+            <button 
+              onClick={() => setShowEditModal(true)}
+              className="mt-6 w-full bg-westar text-cod-gray py-2 px-4 rounded-lg hover:bg-clay-creek/20 transition-colors flex items-center justify-center space-x-2"
+            >
+              <Edit className="w-4 h-4" />
               <span>Edit Profile</span>
             </button>
           </div>
@@ -138,6 +220,84 @@ export const Account: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Edit Profile Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-cod-gray/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-cod-gray">Edit Profile</h2>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="text-sandstone hover:text-cod-gray transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleEditSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-cod-gray mb-2">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  name="full_name"
+                  value={editFormData.full_name}
+                  onChange={handleEditChange}
+                  className="w-full px-3 py-2 border border-clay-creek/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-clay-creek bg-white text-cod-gray"
+                  placeholder="Enter your full name"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-cod-gray mb-2">
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={editFormData.phone}
+                  onChange={handleEditChange}
+                  className="w-full px-3 py-2 border border-clay-creek/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-clay-creek bg-white text-cod-gray"
+                  placeholder="Enter your phone number"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-cod-gray mb-2">
+                  Address
+                </label>
+                <textarea
+                  name="address"
+                  value={editFormData.address}
+                  onChange={handleEditChange}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-clay-creek/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-clay-creek bg-white text-cod-gray"
+                  placeholder="Enter your address"
+                />
+              </div>
+
+              <div className="flex justify-end space-x-4 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  className="px-4 py-2 text-cod-gray border border-clay-creek/30 rounded-lg hover:bg-westar transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="px-4 py-2 bg-cod-gray text-white rounded-lg hover:bg-clay-creek transition-colors disabled:opacity-50"
+                >
+                  {loading ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
