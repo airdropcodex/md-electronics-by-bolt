@@ -12,6 +12,7 @@ import { Account } from './pages/Account';
 import { About } from './pages/About';
 import { Wishlist } from './pages/Wishlist';
 import { Contact } from './pages/Contact';
+import { OrderHistory } from './pages/OrderHistory';
 import { AdminLogin } from './pages/Admin/Login';
 import { AdminLayout } from './components/Admin/AdminLayout';
 import { AdminDashboard } from './pages/Admin/Dashboard';
@@ -48,6 +49,7 @@ function App() {
             <Route path="/about" element={<About />} />
             <Route path="/wishlist" element={<Wishlist />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/account/orders" element={<OrderHistory />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
             
             {/* Admin Routes */}
