@@ -9,6 +9,24 @@ export const useAuth = () => {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching user profile:', error);
+      } else {
+        setUserProfile(data);
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
+
   useEffect(() => {
     const getSupabaseUser = async () => {
       if (user) {
@@ -53,24 +71,6 @@ export const useAuth = () => {
         setUserProfile(null);
       }
       setLoading(false);
-    };
-
-    const fetchUserProfile = async (userId: string) => {
-      try {
-        const { data, error } = await supabase
-          .from('user_profiles')
-          .select('*')
-          .eq('id', userId)
-          .single();
-
-        if (error && error.code !== 'PGRST116') {
-          console.error('Error fetching user profile:', error);
-        } else {
-          setUserProfile(data);
-        }
-      } catch (error) {
-        console.error('Error fetching user profile:', error);
-      }
     };
     if (isLoaded) {
       getSupabaseUser();
