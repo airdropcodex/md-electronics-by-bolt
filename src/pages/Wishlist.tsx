@@ -9,7 +9,7 @@ import { Toast } from '../components/ui/Toast';
 export const Wishlist: React.FC = () => {
   const { wishlistItems, removeFromWishlist, loading } = useWishlist();
   const { addToCart } = useCart();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [showToast, setShowToast] = React.useState(false);
   const [toastMessage, setToastMessage] = React.useState('');
 
@@ -32,6 +32,18 @@ export const Wishlist: React.FC = () => {
     setToastMessage('Removed from wishlist');
     setShowToast(true);
   };
+
+  // Show loading state while auth is being determined
+  if (authLoading) {
+    return (
+      <div className="bg-westar min-h-screen py-16">
+        <div className="container mx-auto px-4 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-clay-creek mx-auto mb-4"></div>
+          <p className="text-sandstone">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!user) {
     return (

@@ -8,7 +8,7 @@ import { Toast } from '../components/ui/Toast';
 
 export const Checkout: React.FC = () => {
   const { cartItems, getTotalAmount, clearCart } = useCart();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [showToast, setShowToast] = useState(false);
@@ -102,6 +102,19 @@ export const Checkout: React.FC = () => {
       minimumFractionDigits: 0,
     }).format(price);
   };
+
+  // Show loading state while auth is being determined
+  if (authLoading) {
+    return (
+      <div className="bg-westar min-h-screen py-8">
+        <div className="container mx-auto px-4 md:px-8 lg:px-16">
+          <div className="flex items-center justify-center py-16">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-clay-creek"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!user) {
     return (

@@ -6,7 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 
 export const Cart: React.FC = () => {
   const { cartItems, updateQuantity, removeFromCart, getTotalAmount, loading } = useCart();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-BD', {
@@ -15,6 +15,17 @@ export const Cart: React.FC = () => {
       minimumFractionDigits: 0,
     }).format(price);
   };
+
+  // Show loading state while auth is being determined
+  if (authLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-clay-creek"></div>
+        </div>
+      </div>
+    );
+  }
 
   if (!user) {
     return (

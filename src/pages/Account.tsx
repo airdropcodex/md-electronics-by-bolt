@@ -8,7 +8,7 @@ import { supabase } from '../lib/supabase';
 import { Toast } from '../components/ui/Toast';
 
 export const Account: React.FC = () => {
-  const { user, userProfile, signOut } = useAuth();
+  const { user, userProfile, signOut, loading } = useAuth();
   const { getTotalItems } = useCart();
   const { getTotalWishlistItems } = useWishlist();
   const [showEditModal, setShowEditModal] = React.useState(false);
@@ -71,6 +71,18 @@ export const Account: React.FC = () => {
       setLoading(false);
     }
   };
+
+  // Show loading state while auth is being determined
+  if (loading) {
+    return (
+      <div className="bg-westar min-h-screen py-16">
+        <div className="container mx-auto px-4 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-clay-creek mx-auto mb-4"></div>
+          <p className="text-sandstone">Loading your account...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!user) {
     return (

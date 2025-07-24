@@ -18,7 +18,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState('');
   const [categories, setCategories] = useState<Category[]>([]);
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading: authLoading } = useAuth();
   const { getTotalItems } = useCart();
   const { getTotalWishlistItems } = useWishlist();
   const location = useLocation();
@@ -132,7 +132,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 
                 {isUserMenuOpen && (
                   <div className="absolute right-0 top-full mt-2 w-48 bg-white shadow-xl rounded-xl border border-clay-creek/10 py-2 z-50">
-                    {user ? (
+                    {authLoading ? (
+                      <div className="px-4 py-2 text-sm text-sandstone">
+                        Loading...
+                      </div>
+                    ) : user ? (
                       <>
                         <Link
                           to="/account"
@@ -289,7 +293,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                   Contact
                 </Link>
                 <hr className="my-4 border-clay-creek/20" />
-                {user ? (
+                {authLoading ? (
+                  <div className="block py-3 text-cod-gray">
+                    Loading...
+                  </div>
+                ) : user ? (
                   <>
                     <Link to="/account" className="block py-3 font-bold uppercase tracking-wide text-cod-gray hover:text-clay-creek transition-colors">
                       My Account
